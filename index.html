@@ -22,12 +22,16 @@
       --success:#22c55e;
       --radius:14px;
     }
+    html{font-size:clamp(14px, 0.9vw + 12px, 18px)}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:"Cairo","Space Grotesk",system-ui;background:radial-gradient(circle at 15% 20%,rgba(34,211,238,0.08),transparent 28%),radial-gradient(circle at 82% 10%,rgba(245,158,11,0.07),transparent 22%),linear-gradient(180deg,#0b1523,#060c15);color:var(--text);-webkit-font-smoothing:antialiased}
     body{padding:18px}
-    .shell{max-width:1240px;margin:0 auto;display:grid;gap:16px}
+    .shell{width:100%;max-width:1240px;margin:0 auto;display:grid;gap:16px}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--panel);padding:14px 16px;border-radius:var(--radius);box-shadow:none;backdrop-filter:blur(8px)}
     .brand{font-weight:800;letter-spacing:-0.3px;color:var(--accent);font-size:18px}
+    .budget-display{display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);min-width:280px}
+    .budget-label{font-size:12px;color:var(--muted)}
+    .budget-value{font-size:28px;font-weight:900;letter-spacing:0.2px}
     .tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);color:var(--text);cursor:pointer;transition:all .2s;font-weight:600}
     .tab.active{background:var(--accent);color:#04101c;border-color:transparent;box-shadow:0 12px 30px rgba(34,211,238,0.25)}
@@ -51,7 +55,7 @@
     .card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,0.25)}
     .card .value{font-size:24px;font-weight:900;letter-spacing:0.2px}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)}
-    .chart-area{height:360px;position:relative;margin-top:12px}
+    .chart-area{height:clamp(220px, 32vw, 360px);position:relative;margin-top:12px}
     table{width:100%;border-collapse:collapse;color:var(--text)}
     th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;font-size:14px}
     th{background:rgba(255,255,255,0.04);font-weight:700}
@@ -117,11 +121,16 @@
   <div class="shell">
     <div class="topbar">
       <div class="brand">محاسب</div>
+      <div class="budget-display" id="budgetDisplay">
+        <div class="budget-label">الميزانية العامة (متبقي)</div>
+        <div class="budget-value" id="budgetValue">0 د.ع</div>
+      </div>
       <div class="tabs" id="mainTabs">
         <button class="tab active" data-section="dashboard">الرئيسية</button>
         <button class="tab" data-section="products">إدارة المنتجات</button>
-        <button class="tab" data-section="personal">المالية الشخصية</button>
+        <button class="tab" data-section="personal">مالية العمل</button>
         <button class="tab" data-section="funds">إدارة الأموال</button>
+        <button class="tab" data-section="debts">إدارة الديون</button>
       </div>
       <div class="actions">
         <button class="btn" id="resetData"><i class="fa-solid fa-rotate-left icon"></i>تصفير البيانات</button>
@@ -138,7 +147,7 @@
             </div>
             <div class="links">
               <button class="btn" id="openProductsModal"><i class="fa-solid fa-table-list icon"></i>انتقال للمنتجات</button>
-              <button class="btn" data-jump="personal"><i class="fa-solid fa-wallet icon"></i>انتقال للمالية الشخصية</button>
+              <button class="btn" data-jump="personal"><i class="fa-solid fa-wallet icon"></i>انتقال لمالية العمل</button>
             </div>
           </div>
           <div class="grid-cards" id="dashCards"></div>
@@ -158,6 +167,11 @@
           <div style="margin-top:12px">
             <h5>آخر الحركات</h5>
             <div class="history" id="recentCash"></div>
+          </div>
+          <div class="panel" style="margin-top:12px">
+            <h4>إدارة الميزانية</h4>
+            <div class="small" style="margin-top:6px">افتح نافذة الميزانية لإدارة المبالغ بسهولة.</div>
+            <button class="btn primary" id="openBudgetModal" style="margin-top:10px"><i class="fa-solid fa-chart-pie icon"></i>فتح نافذة الميزانية</button>
           </div>
         </aside>
       </div>
@@ -203,13 +217,13 @@
       </div>
     </section>
 
-    <section class="panel" id="personal" aria-label="المالية الشخصية" hidden>
+    <section class="panel" id="personal" aria-label="مالية العمل" hidden>
       <div class="layout">
         <div>
           <div class="panel">
             <div class="flex" style="justify-content:space-between;align-items:center">
-              <h3>المالية الشخصية</h3>
-              <span class="pill">قسم خاص</span>
+              <h3>مالية العمل</h3>
+              <span class="pill">قسم العمل</span>
             </div>
             <div class="form-grid" style="margin-top:10px">
               <select id="ptType"><option value="income">دخل</option><option value="expense">مصروف</option></select>
@@ -221,7 +235,7 @@
           <div class="grid-cards" id="personalCards" style="margin-top:12px"></div>
           <div class="panel" style="margin-top:12px">
             <div class="flex" style="justify-content:space-between;align-items:center">
-              <h4>منحنى شخصي</h4>
+              <h4>منحنى العمل</h4>
               <span class="pill">آخر 10 معاملات</span>
             </div>
             <div class="chart-area" style="height:240px"><canvas id="personalChart"></canvas></div>
@@ -231,7 +245,7 @@
         </div>
         <aside>
           <div class="panel">
-            <h4>تفاصيل حديثة</h4>
+            <h4>تفاصيل العمل</h4>
             <div class="history" id="personalList"></div>
           </div>
           <div class="panel" style="margin-top:12px">
@@ -240,11 +254,11 @@
           </div>
           <div class="panel" style="margin-top:12px">
             <div class="flex" style="justify-content:space-between;align-items:center">
-              <h4>ملاحظات شخصية مثبتة</h4>
-              <span class="pill">قسم خاص</span>
+              <h4>ملاحظات عمل مثبتة</h4>
+              <span class="pill">قسم العمل</span>
             </div>
             <div class="form-grid">
-              <textarea id="noteText" rows="2" placeholder="اكتب ملاحظة مالية أو تذكير مهم"></textarea>
+              <textarea id="noteText" rows="2" placeholder="اكتب ملاحظة خاصة بالعمل أو تذكير مهم"></textarea>
               <button class="btn primary" id="addNote"><i class="fa-solid fa-note-sticky icon"></i>إضافة ملاحظة</button>
             </div>
             <div class="history" id="notesList"></div>
@@ -288,6 +302,39 @@
             <span class="pill">أسهم ومربعات</span>
           </div>
           <div class="flow-list" id="fundsFlow"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="panel" id="debts" aria-label="إدارة الديون" hidden>
+      <div class="layout">
+        <div>
+          <div class="panel">
+            <div class="flex" style="justify-content:space-between;align-items:center">
+              <div>
+                <h3>إدارة الديون</h3>
+                <div class="muted">سجّل الديون وراقب الإجمالي والتفاصيل.</div>
+              </div>
+              <span class="pill">قسم مستقل</span>
+            </div>
+            <div class="form-grid" style="margin-top:10px">
+              <input id="debtReason" placeholder="سبب الدين">
+              <input id="debtTo" placeholder="الجهة الدائنة">
+              <input id="debtAmount" type="number" placeholder="قيمة الدين">
+              <button class="btn danger" id="addDebt"><i class="fa-solid fa-hand-holding-dollar icon"></i>إضافة دين</button>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:12px">
+            <h4>سجل الديون</h4>
+            <div class="history" id="debtsList" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <aside class="panel">
+          <div class="flex" style="justify-content:space-between;align-items:center">
+            <h4>تنبيهات سريعة</h4>
+            <span class="pill">ملخص</span>
+          </div>
+          <div class="history" id="debtsSummary" style="margin-top:10px"></div>
         </aside>
       </div>
     </section>
@@ -372,6 +419,31 @@
     </div>
   </div>
 
+  <!-- نافذة إدارة الميزانية -->
+  <div class="modal-backdrop" id="budgetModal" aria-hidden="true">
+    <div class="modal dark">
+      <header>
+        <div>
+          <h3 style="margin:0">إدارة الميزانية</h3>
+          <div class="muted">تعيين الميزانية وزيادتها أو سحب مبلغ منها.</div>
+        </div>
+        <button class="modal-close" id="closeBudgetModal">إغلاق</button>
+      </header>
+      <div class="panel">
+        <div class="form-grid">
+          <input id="fundsBudget" type="number" placeholder="تعيين الميزانية الكلية">
+          <button class="btn" id="saveFundsBudget"><i class="fa-solid fa-sack-dollar icon"></i>حفظ الميزانية</button>
+        </div>
+        <div class="form-grid" style="margin-top:10px">
+          <input id="budgetDelta" type="number" placeholder="إضافة/سحب من الميزانية">
+          <button class="btn primary" id="addBudget"><i class="fa-solid fa-circle-plus icon"></i>إضافة</button>
+          <button class="btn danger" id="subtractBudget"><i class="fa-solid fa-circle-minus icon"></i>سحب</button>
+        </div>
+        <div class="small" style="margin-top:8px">يمكنك تعديل الميزانية مباشرة أو زيادة/سحب مبلغ.</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // state & storage
     const storeKey = 'mini-accounting-state-v2';
@@ -385,7 +457,9 @@
       funds: {
         balance: 0,
         allocations: [],
-        plan: ''
+        plan: '',
+        budget: 0,
+        debts: []
       }
     });
     function normalizeState(data){
@@ -400,7 +474,9 @@
         funds: {
           balance: Number(data?.funds?.balance || 0),
           allocations: Array.isArray(data?.funds?.allocations) ? data.funds.allocations : [],
-          plan: typeof data?.funds?.plan === 'string' ? data.funds.plan : ''
+          plan: typeof data?.funds?.plan === 'string' ? data.funds.plan : '',
+          budget: Number(data?.funds?.budget || 0),
+          debts: Array.isArray(data?.funds?.debts) ? data.funds.debts : []
         }
       };
     }
@@ -433,6 +509,7 @@
       if(target==='products') renderProducts();
       if(target==='personal') renderPersonal();
       if(target==='funds') renderFunds();
+      if(target==='debts') renderDebts();
     }));
 
     // direct navigation buttons
@@ -481,6 +558,23 @@
     openDailyModalBtn?.addEventListener('click',()=>toggleDailyModal(true));
     closeDailyModalBtn?.addEventListener('click',()=>toggleDailyModal(false));
     dailyModal?.addEventListener('click',(e)=>{ if(e.target===dailyModal) toggleDailyModal(false); });
+
+    // modal budget
+    const budgetModal = document.getElementById('budgetModal');
+    const openBudgetModalBtn = document.getElementById('openBudgetModal');
+    const closeBudgetModalBtn = document.getElementById('closeBudgetModal');
+    const toggleBudgetModal = (show)=>{
+      if(!budgetModal) return;
+      budgetModal.classList.toggle('show', !!show);
+      budgetModal.setAttribute('aria-hidden', show? 'false':'true');
+      if(show){
+        const budgetInput = document.getElementById('fundsBudget');
+        if(budgetInput) budgetInput.value = Number.isFinite(state.funds?.budget) ? state.funds.budget : 0;
+      }
+    };
+    openBudgetModalBtn?.addEventListener('click',()=>toggleBudgetModal(true));
+    closeBudgetModalBtn?.addEventListener('click',()=>toggleBudgetModal(false));
+    budgetModal?.addEventListener('click',(e)=>{ if(e.target===budgetModal) toggleBudgetModal(false); });
 
     // dashboard rendering
     function renderDashboard(){
@@ -989,7 +1083,7 @@
       [
         {label:'إجمالي الدخل', value:fmt(totalIncome), tone:'var(--success)'},
         {label:'إجمالي المصروف', value:fmt(totalExpense), tone:'var(--danger)'},
-        {label:'صافي شخصي', value:fmt(net), tone:'var(--accent)'},
+        {label:'صافي العمل', value:fmt(net), tone:'var(--accent)'},
         {label:'عدد العمليات', value:list.length + ' حركة', tone:'var(--accent-2)'}
       ].forEach(c=>{ const el=document.createElement('div'); el.className='card'; el.style.borderColor=c.tone+'33'; el.innerHTML=`<div class="muted">${c.label}</div><div class="value" style="color:${c.tone}">${c.value}</div>`; cards.appendChild(el); });
       const history = document.getElementById('personalList'); history.innerHTML='';
@@ -1062,7 +1156,7 @@
     document.getElementById('addPersonal').addEventListener('click',()=>{
       const type = document.getElementById('ptType').value;
       const amount = toNumber(document.getElementById('ptAmount').value||0);
-      const desc = document.getElementById('ptDesc').value.trim()|| (type==='income'?'دخل شخصي':'مصروف شخصي');
+      const desc = document.getElementById('ptDesc').value.trim()|| (type==='income'?'دخل عمل':'مصروف عمل');
       if(amount<=0){alert('أدخل مبلغ صحيح');return;}
       state.personal.push({id:uid(), type, amount, desc, date: today(0)});
       saveState(); renderPersonal();
@@ -1113,21 +1207,36 @@
       return true;
     }
 
+    function renderBudgetHeader(){
+      const budgetValue = document.getElementById('budgetValue');
+      if(!budgetValue) return;
+      const budget = Number(state.funds?.budget || 0);
+      const allocations = Array.isArray(state.funds?.allocations) ? state.funds.allocations : [];
+      const totalSpent = allocations.reduce((s,a)=>s+a.amount,0);
+      const budgetRemaining = budget - totalSpent;
+      budgetValue.textContent = fmt(budgetRemaining);
+      budgetValue.style.color = budgetRemaining >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
     function renderFunds(){
       const stats = document.getElementById('fundsStats');
       const planInput = document.getElementById('fundsPlan');
       const flow = document.getElementById('fundsFlow');
+      const budgetInput = document.getElementById('fundsBudget');
       if(!stats || !planInput || !flow) return;
 
       const balance = Number(state.funds?.balance || 0);
+      const budget = Number(state.funds?.budget || 0);
       const allocations = Array.isArray(state.funds?.allocations) ? state.funds.allocations : [];
       const totalSpent = allocations.reduce((s,a)=>s+a.amount,0);
       const remaining = balance - totalSpent;
+      const budgetRemaining = budget - totalSpent;
 
       stats.innerHTML='';
       [
         {label:'إجمالي المصروفات', value: fmt(totalSpent), tone:'var(--danger)'},
-        {label:'المتبقي من الرصيد', value: fmt(remaining), tone: remaining>=0 ? 'var(--success)' : 'var(--danger)'}
+        {label:'المتبقي من الرصيد', value: fmt(remaining), tone: remaining>=0 ? 'var(--success)' : 'var(--danger)'},
+        {label:'ميزانية متبقية', value: fmt(budgetRemaining), tone: budgetRemaining>=0 ? 'var(--success)' : 'var(--danger)'}
       ].forEach(row=>{
         const el = document.createElement('div');
         el.className='stat-line';
@@ -1136,6 +1245,8 @@
       });
 
       planInput.value = state.funds?.plan || '';
+      if(budgetInput) budgetInput.value = Number.isFinite(budget) ? budget : 0;
+      renderBudgetHeader();
       flow.innerHTML='';
       if(!allocations.length){
         const empty = document.createElement('div');
@@ -1158,6 +1269,58 @@
           <div class="flow-amount">${fmt(a.amount)}</div>`;
         flow.appendChild(item);
       });
+
+    }
+
+    function renderDebts(){
+      const debtsList = document.getElementById('debtsList');
+      const debtsSummary = document.getElementById('debtsSummary');
+      if(!debtsList) return;
+      const debts = Array.isArray(state.funds?.debts) ? state.funds.debts : [];
+      debtsList.innerHTML='';
+      if(!debts.length){
+        const empty = document.createElement('div');
+        empty.className='history-item';
+        empty.innerHTML = '<div>لا توجد ديون مسجلة.</div><span class="tag info">معلومات</span>';
+        debtsList.appendChild(empty);
+      }else{
+        debts.forEach(d=>{
+          const el = document.createElement('div');
+          el.className='history-item';
+          el.innerHTML = `
+            <div>
+              <div class="muted">${d.reason || 'دين'}</div>
+              <div class="small">${d.to || 'غير محدد'} • ${fmtDate(d.date || today(0))}</div>
+            </div>
+            <div class="flex" style="justify-content:flex-end">
+              <span class="kpi" style="color:var(--danger)">${fmt(d.amount)}</span>
+              <button class="btn danger" data-del-debt="${d.id}">حذف</button>
+            </div>`;
+          debtsList.appendChild(el);
+        });
+        debtsList.querySelectorAll('[data-del-debt]').forEach(btn=>btn.addEventListener('click',()=>{
+          const id = btn.dataset.delDebt;
+          state.funds.debts = state.funds.debts.filter(x=>x.id!==id);
+          saveState();
+          renderDebts();
+        }));
+      }
+      if(debtsSummary){
+        debtsSummary.innerHTML='';
+        const totalDebt = debts.reduce((s,d)=>s + (Number(d.amount)||0),0);
+        const count = debts.length;
+        const latest = debts.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
+        [
+          {label:'إجمالي الديون', value: fmt(totalDebt), tone:'var(--danger)'},
+          {label:'عدد الديون', value: count + ' دين', tone:'var(--accent)'},
+          {label:'آخر دين', value: latest ? `${latest.reason || 'دين'} (${fmtDate(latest.date || today(0))})` : 'لا يوجد', tone:'var(--muted)'}
+        ].forEach(row=>{
+          const el = document.createElement('div');
+          el.className='stat-line';
+          el.innerHTML = `<div class="muted">${row.label}</div><div class="kpi" style="color:${row.tone}">${row.value}</div>`;
+          debtsSummary.appendChild(el);
+        });
+      }
     }
 
     document.getElementById('addFunds')?.addEventListener('click',()=>{
@@ -1170,12 +1333,54 @@
       document.getElementById('fundsDesc').value='';
       document.getElementById('fundsAmount').value='';
       renderFunds();
+      renderBudgetHeader();
+      toggleBudgetModal(false);
     });
     document.getElementById('saveFundsPlan')?.addEventListener('click',()=>{
       const text = document.getElementById('fundsPlan').value.trim();
       state.funds.plan = text;
       saveState();
       renderFunds();
+    });
+    document.getElementById('saveFundsBudget')?.addEventListener('click',()=>{
+      const amount = toNumber(document.getElementById('fundsBudget').value||0);
+      state.funds.budget = amount;
+      saveState();
+      renderFunds();
+      renderBudgetHeader();
+      toggleBudgetModal(false);
+    });
+    document.getElementById('addBudget')?.addEventListener('click',()=>{
+      const delta = toNumber(document.getElementById('budgetDelta').value||0);
+      if(delta<=0){alert('أدخل مبلغ صحيح');return;}
+      state.funds.budget = toNumber(state.funds.budget) + delta;
+      saveState();
+      document.getElementById('budgetDelta').value='';
+      renderFunds();
+      renderBudgetHeader();
+      toggleBudgetModal(false);
+    });
+    document.getElementById('subtractBudget')?.addEventListener('click',()=>{
+      const delta = toNumber(document.getElementById('budgetDelta').value||0);
+      if(delta<=0){alert('أدخل مبلغ صحيح');return;}
+      state.funds.budget = toNumber(state.funds.budget) - delta;
+      saveState();
+      document.getElementById('budgetDelta').value='';
+      renderFunds();
+      renderBudgetHeader();
+    });
+    document.getElementById('addDebt')?.addEventListener('click',()=>{
+      const reason = document.getElementById('debtReason').value.trim();
+      const to = document.getElementById('debtTo').value.trim();
+      const amount = toNumber(document.getElementById('debtAmount').value||0);
+      if(amount<=0){alert('أدخل مبلغ دين صحيح');return;}
+      const entry = {id: uid(), reason, to, amount, date: today(0)};
+      state.funds.debts.unshift(entry);
+      saveState();
+      document.getElementById('debtReason').value='';
+      document.getElementById('debtTo').value='';
+      document.getElementById('debtAmount').value='';
+      renderDebts();
     });
 
     function renderPersonalNotes(){
@@ -1243,6 +1448,8 @@
     renderProducts();
     renderPersonal();
     renderFunds();
+    renderDebts();
+    renderBudgetHeader();
   </script>
 </body>
 </html>
